@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MANGAVERSE — Read Manga Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bangers&family=Noto+Sans+JP:wght@400;700;900&family=Oswald:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --paper: #f5f0e8;
+    --red: #e8001d;
+    --yellow: #ffd000;
+    --blue: #0033cc;
+    --white: #ffffff;
+    --gray: #888;
+    --panel-shadow: 4px 4px 0 #0a0a0a;
+    --border: 3px solid #0a0a0a;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Oswald', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ─── PAGES ──────────────────────────── */
+  .page { display:none; min-height:100vh; }
+  .page.active { display:block; }
+
+  /* ─── NAV ────────────────────────────── */
+  nav {
+    background: var(--ink);
+    color: var(--white);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    border-bottom: 4px solid var(--red);
+    position: sticky; top:0; z-index:999;
+  }
+  .nav-logo {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: var(--yellow);
+    letter-spacing: 3px;
+    cursor: pointer;
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links { display:flex; gap:1.5rem; align-items:center; }
+  .nav-links a {
+    color: var(--white);
+    text-decoration:none;
+    font-size:.85rem;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--yellow); }
+  .nav-search {
+    display:flex; align-items:center; gap:.5rem;
+    background:#222; border:2px solid #444;
+    padding:.3rem .7rem; border-radius:2px;
+  }
+  .nav-search input {
+    background:transparent; border:none; color:#fff;
+    font-family:'Oswald',sans-serif; font-size:.85rem; outline:none; width:150px;
+  }
+  .nav-search button {
+    background:none; border:none; color:var(--yellow); cursor:pointer; font-size:1rem;
+  }
+
+  /* ─── HERO ────────────────────────────── */
+  .hero {
+    background: var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 500px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hero::before {
+    content:'';
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      rgba(255,208,0,.03) 20px,
+      rgba(255,208,0,.03) 40px
+    );
+  }
+  .hero-text {
+    padding: 4rem 3rem;
+    display:flex; flex-direction:column; justify-content:center;
+    position:relative; z-index:1;
+  }
+  .hero-tag {
+    font-size:.7rem; letter-spacing:4px; color:var(--red);
+    text-transform:uppercase; font-weight:700; margin-bottom:1rem;
+  }
+  .hero-title {
+    font-family: 'Bangers', cursive;
+    font-size: 5rem;
+    color: var(--white);
+    line-height:.95;
+    letter-spacing:3px;
+    margin-bottom:1rem;
+  }
+  .hero-title span { color:var(--yellow); display:block; }
+  .hero-desc {
+    color:#aaa; font-size:.9rem; line-height:1.6;
+    max-width:380px; margin-bottom:2rem; font-weight:300;
+  }
+  .hero-btns { display:flex; gap:1rem; }
+  .btn-primary {
+    background: var(--red);
+    color:#fff; border:none; padding:.75rem 2rem;
+    font-family:'Oswald',sans-serif; font-size:.85rem; font-weight:700;
+    letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+    border:3px solid var(--red);
+    box-shadow: 4px 4px 0 var(--yellow);
+    transition: all .15s;
+  }
+  .btn-primary:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--yellow); }
+  .btn-secondary {
+    background: transparent;
+    color:var(--white); padding:.75rem 2rem;
+    font-family:'Oswald',sans-serif; font-size:.85rem; font-weight:700;
+    letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+    border:3px solid #444;
+    transition: all .15s;
+  }
+  .btn-secondary:hover { border-color:var(--white); }
+
+  .hero-visual {
+    position:relative;
+    background: linear-gradient(135deg, #111 0%, #1a0000 100%);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .hero-manga-panels {
+    display:grid; grid-template-columns:1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap:8px; padding:2rem;
+    width:100%; height:100%;
+  }
+  .hero-panel {
+    border:3px solid var(--red);
+    background:#111;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:2px;
+    color:#333; overflow:hidden; position:relative;
+  }
+  .hero-panel:nth-child(1) { grid-column:1/2; grid-row:1/3; font-size:4rem; color:#1a1a1a; }
+  .hero-panel-emoji { font-size:3rem; filter:grayscale(80%); }
+
+  /* ─── SECTION TITLE ──────────────────── */
+  .section-head {
+    display:flex; align-items:center; gap:1rem;
+    padding:2.5rem 2.5rem 1.5rem;
+  }
+  .section-head h2 {
+    font-family:'Bangers',cursive; font-size:2.2rem; letter-spacing:3px;
+  }
+  .section-head .line {
+    flex:1; height:3px; background: var(--ink);
+  }
+  .section-head .badge {
+    background:var(--red); color:#fff; font-size:.65rem;
+    padding:.2rem .6rem; font-weight:700; letter-spacing:1px;
+  }
+
+  /* ─── MANGA GRID ──────────────────────── */
+  .manga-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+    gap:1.5rem; padding: 0 2.5rem 2.5rem;
+  }
+  .manga-card {
+    cursor:pointer;
+    border: var(--border);
+    box-shadow: var(--panel-shadow);
+    transition: transform .15s, box-shadow .15s;
+    position:relative; overflow:hidden;
+    background:#fff;
+  }
+  .manga-card:hover {
+    transform: translate(-3px,-3px);
+    box-shadow: 7px 7px 0 var(--ink);
+  }
+  .manga-card-cover {
+    width:100%; aspect-ratio:2/3;
+    display:flex; align-items:center; justify-content:center;
+    font-size:3.5rem; position:relative; overflow:hidden;
+  }
+  .manga-card-badge {
+    position:absolute; top:8px; left:8px;
+    background:var(--red); color:#fff;
+    font-size:.6rem; font-weight:700; letter-spacing:1px;
+    padding:.15rem .5rem; text-transform:uppercase;
+  }
+  .manga-card-chapter {
+    position:absolute; bottom:8px; right:8px;
+    background:rgba(0,0,0,.8); color:#fff;
+    font-size:.65rem; font-weight:600; padding:.2rem .4rem;
+  }
+  .manga-card-info { padding:.75rem; border-top: var(--border); }
+  .manga-card-title {
+    font-family:'Oswald',sans-serif; font-size:.9rem;
+    font-weight:700; letter-spacing:.5px; margin-bottom:.25rem;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .manga-card-meta {
+    display:flex; justify-content:space-between;
+    font-size:.7rem; color:var(--gray); font-weight:400;
+  }
+  .manga-card-rating { color:var(--red); font-weight:700; }
+
+  /* ─── GENRE PILLS ─────────────────────── */
+  .genre-bar { padding:.5rem 2.5rem 1.5rem; display:flex; flex-wrap:wrap; gap:.5rem; }
+  .genre-pill {
+    padding:.3rem .9rem; border:2px solid var(--ink);
+    font-size:.75rem; font-weight:600; letter-spacing:1px;
+    text-transform:uppercase; cursor:pointer; background:#fff;
+    transition: all .15s;
+  }
+  .genre-pill:hover, .genre-pill.active {
+    background:var(--ink); color:var(--white);
+  }
+
+  /* ─── FEATURED STRIP ─────────────────── */
+  .featured-strip {
+    background:var(--ink); color:#fff;
+    padding:2rem 2.5rem;
+    display:grid; grid-template-columns:300px 1fr;
+    gap:2rem; align-items:center;
+    border-top:4px solid var(--red);
+    border-bottom:4px solid var(--red);
+    margin:1rem 0;
+  }
+  .featured-cover {
+    aspect-ratio:3/4; background:#222;
+    border:var(--border); border-color:#444;
+    display:flex; align-items:center; justify-content:center; font-size:5rem;
+  }
+  .featured-tag { color:var(--red); font-size:.7rem; letter-spacing:3px; font-weight:700; margin-bottom:.5rem; }
+  .featured-title { font-family:'Bangers',cursive; font-size:3rem; letter-spacing:3px; line-height:1; margin-bottom:.75rem; }
+  .featured-genres { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .tag { background:#333; font-size:.65rem; padding:.2rem .5rem; letter-spacing:1px; }
+  .featured-desc { color:#aaa; font-size:.85rem; line-height:1.6; margin-bottom:1.5rem; max-width:500px; }
+  .featured-stats { display:flex; gap:2rem; margin-bottom:1.5rem; }
+  .stat-item { text-align:center; }
+  .stat-num { font-family:'Bangers',cursive; font-size:2rem; color:var(--yellow); letter-spacing:2px; }
+  .stat-label { font-size:.65rem; color:#666; letter-spacing:1px; }
+
+  /* ─── READER PAGE ─────────────────────── */
+  #page-reader { background:#111; }
+  .reader-nav {
+    background:#0a0a0a; color:#fff; padding:.75rem 2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:3px solid var(--red);
+  }
+  .reader-nav-title { font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:2px; }
+  .reader-controls { display:flex; gap:1rem; align-items:center; }
+  .reader-btn {
+    background:#222; color:#fff; border:2px solid #444;
+    padding:.4rem .9rem; font-family:'Oswald',sans-serif; font-size:.75rem;
+    font-weight:600; letter-spacing:1px; cursor:pointer; transition:all .15s;
+  }
+  .reader-btn:hover { border-color:var(--red); color:var(--red); }
+  .reader-chapter-select {
+    background:#222; color:#fff; border:2px solid #444;
+    padding:.4rem; font-family:'Oswald',sans-serif; font-size:.75rem; cursor:pointer;
+  }
+  .reader-pages {
+    max-width:800px; margin:0 auto; padding:1rem;
+  }
+  .reader-page-img {
+    width:100%; margin-bottom:4px; display:block;
+    border:2px solid #222;
+  }
+  .manga-page-panel {
+    width:100%; background:#1a1a1a;
+    border:3px solid #333;
+    margin-bottom:6px;
+    display:flex; flex-direction:column;
+    overflow:hidden; position:relative;
+  }
+  .manga-panel-row { display:flex; }
+  .manga-panel-cell {
+    flex:1; padding:1.5rem;
+    border:2px solid #2a2a2a;
+    min-height:180px;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    position:relative; overflow:hidden;
+  }
+  .manga-panel-cell.tall { min-height:320px; }
+  .manga-panel-cell.wide { flex:2; }
+  .sfx {
+    font-family:'Bangers',cursive; font-size:3rem; letter-spacing:4px;
+    color:var(--red); opacity:.9; line-height:1;
+    text-shadow: 3px 3px 0 #000;
+  }
+  .sfx.blue { color:var(--blue); }
+  .sfx.yellow { color:var(--yellow); }
+  .speech-bubble {
+    background:#fff; color:#000;
+    border:3px solid #000; padding:.5rem .75rem;
+    font-family:'Noto Sans JP',sans-serif; font-size:.8rem; line-height:1.4;
+    font-weight:700; max-width:200px;
+    position:relative; border-radius:2px;
+  }
+  .speech-bubble::after {
+    content:''; position:absolute; bottom:-14px; left:20px;
+    border:7px solid transparent; border-top-color:#000;
+  }
+  .thought-bubble {
+    background:#eef; color:#000; border:2px dashed #666;
+    padding:.4rem .7rem; font-size:.75rem; font-style:italic;
+    max-width:180px; font-family:'Noto Sans JP',sans-serif; line-height:1.4;
+  }
+  .character-silhouette {
+    font-size:5rem; text-align:center; filter:drop-shadow(0 0 20px rgba(255,0,0,.3));
+  }
+  .action-lines {
+    position:absolute; inset:0;
+    background: repeating-conic-gradient(#1a1a1a 0deg, #222 1deg, #1a1a1a 2deg);
+    opacity:.3;
+  }
+  .panel-bg-dark { background:#111; }
+  .panel-bg-red { background: linear-gradient(135deg, #2a0000, #111); }
+  .panel-bg-blue { background: linear-gradient(135deg, #000033, #111); }
+  .reader-page-number {
+    text-align:center; color:#666; font-size:.8rem; letter-spacing:2px; padding:.75rem;
+    font-weight:600;
+  }
+  .reader-footer {
+    display:flex; justify-content:center; gap:1rem; padding:2rem;
+  }
+
+  /* ─── MANGA DETAIL PAGE ──────────────── */
+  #page-detail { background:var(--paper); }
+  .detail-hero {
+    background:var(--ink); color:#fff;
+    padding:3rem 2.5rem;
+    display:grid; grid-template-columns:220px 1fr;
+    gap:2.5rem; align-items:start;
+  }
+  .detail-cover {
+    width:100%; aspect-ratio:2/3; background:#222;
+    border:4px solid var(--red);
+    box-shadow: 8px 8px 0 var(--red);
+    display:flex; align-items:center; justify-content:center; font-size:5rem;
+  }
+  .detail-title { font-family:'Bangers',cursive; font-size:3.5rem; letter-spacing:3px; line-height:1; margin-bottom:.5rem; }
+  .detail-alt { color:#666; font-size:.85rem; margin-bottom:1rem; font-weight:300; }
+  .detail-genres { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .detail-genre { background:var(--red); color:#fff; font-size:.65rem; padding:.2rem .6rem; font-weight:700; letter-spacing:1px; }
+  .detail-stats {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:1rem; background:#111; padding:1rem;
+    border:2px solid #333; margin-bottom:1.5rem;
+  }
+  .detail-stat { text-align:center; }
+  .detail-stat-n { font-family:'Bangers',cursive; font-size:1.8rem; color:var(--yellow); }
+  .detail-stat-l { font-size:.65rem; color:#666; letter-spacing:1px; }
+  .detail-desc { color:#aaa; line-height:1.7; font-size:.9rem; font-weight:300; max-width:600px; }
+  .chapters-section { padding:2rem 2.5rem; }
+  .chapters-section h3 { font-family:'Bangers',cursive; font-size:1.8rem; letter-spacing:2px; margin-bottom:1rem; }
+  .chapter-list { display:flex; flex-direction:column; gap:.4rem; }
+  .chapter-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.75rem 1rem; background:#fff; border:2px solid var(--ink);
+    cursor:pointer; transition:all .15s;
+  }
+  .chapter-item:hover { background:var(--ink); color:#fff; }
+  .chapter-item:hover .chapter-date { color:#666; }
+  .chapter-num { font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:1px; }
+  .chapter-title-t { font-size:.85rem; font-weight:400; color:#666; }
+  .chapter-date { font-size:.75rem; color:#aaa; }
+  .chapter-new { background:var(--red); color:#fff; font-size:.6rem; padding:.1rem .4rem; font-weight:700; }
+
+  /* ─── PROFILE PAGE ─────────────────────── */
+  #page-profile { background:var(--paper); }
+  .profile-hero {
+    background:var(--ink); padding:3rem 2.5rem;
+    display:flex; gap:2rem; align-items:center;
+    border-bottom:4px solid var(--red);
+  }
+  .profile-avatar {
+    width:100px; height:100px; border-radius:50%;
+    background:#222; border:4px solid var(--yellow);
+    display:flex; align-items:center; justify-content:center; font-size:3rem;
+    flex-shrink:0;
+  }
+  .profile-name { font-family:'Bangers',cursive; font-size:2.5rem; letter-spacing:3px; color:#fff; }
+  .profile-since { font-size:.8rem; color:#666; margin-bottom:1rem; }
+  .profile-badges { display:flex; gap:.5rem; }
+  .badge-item { background:#222; border:2px solid #444; padding:.3rem .7rem; font-size:.65rem; font-weight:700; letter-spacing:1px; color:#fff; }
+  .badge-item.gold { border-color:var(--yellow); color:var(--yellow); }
+  .profile-content { padding:2rem 2.5rem; display:grid; grid-template-columns:1fr 1fr; gap:2rem; }
+  .profile-section h3 { font-family:'Bangers',cursive; font-size:1.6rem; letter-spacing:2px; border-bottom:3px solid var(--ink); padding-bottom:.5rem; margin-bottom:1rem; }
+  .reading-progress-item { margin-bottom:1rem; }
+  .rp-header { display:flex; justify-content:space-between; font-size:.85rem; font-weight:600; margin-bottom:.3rem; }
+  .rp-bar { height:8px; background:#ddd; border:2px solid var(--ink); }
+  .rp-fill { height:100%; background:var(--red); }
+  .activity-feed { display:flex; flex-direction:column; gap:.75rem; }
+  .activity-item {
+    display:flex; gap:1rem; align-items:flex-start;
+    padding:.75rem; background:#fff; border:2px solid #ddd;
+  }
+  .activity-icon { font-size:1.5rem; flex-shrink:0; }
+  .activity-text { font-size:.82rem; line-height:1.5; }
+  .activity-time { font-size:.7rem; color:var(--gray); margin-top:.2rem; }
+
+  /* ─── GENRES PAGE ────────────────────── */
+  #page-genres { background:var(--paper); padding-bottom:3rem; }
+  .genres-hero {
+    background:var(--ink); padding:3rem 2.5rem;
+    border-bottom:4px solid var(--yellow);
+  }
+  .genres-hero h1 { font-family:'Bangers',cursive; font-size:4rem; letter-spacing:4px; color:#fff; }
+  .genres-hero p { color:#aaa; margin-top:.5rem; font-weight:300; }
+  .genres-grid { padding:2rem 2.5rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+  .genre-card {
+    border:var(--border); padding:1.5rem;
+    cursor:pointer; transition:all .15s;
+    background:#fff; display:flex; align-items:center; gap:1rem;
+    box-shadow:3px 3px 0 var(--ink);
+  }
+  .genre-card:hover { transform:translate(-3px,-3px); box-shadow:6px 6px 0 var(--ink); background:var(--ink); color:#fff; }
+  .genre-icon { font-size:2rem; }
+  .genre-name { font-family:'Bangers',cursive; font-size:1.3rem; letter-spacing:2px; }
+  .genre-count { font-size:.75rem; color:var(--gray); }
+  .genre-card:hover .genre-count { color:#666; }
+
+  /* ─── FOOTER ─────────────────────────── */
+  footer {
+    background:var(--ink); color:#fff;
+    padding:3rem 2.5rem 1.5rem;
+    border-top:4px solid var(--red);
+    margin-top:3rem;
+  }
+  .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:2rem; margin-bottom:2rem; }
+  .footer-brand-name { font-family:'Bangers',cursive; font-size:2rem; color:var(--yellow); letter-spacing:3px; margin-bottom:.75rem; }
+  .footer-brand-desc { color:#666; font-size:.85rem; line-height:1.6; font-weight:300; }
+  .footer-col h4 { font-size:.75rem; letter-spacing:2px; color:var(--red); text-transform:uppercase; margin-bottom:1rem; }
+  .footer-col a { display:block; color:#888; font-size:.82rem; margin-bottom:.4rem; cursor:pointer; text-decoration:none; }
+  .footer-col a:hover { color:#fff; }
+  .footer-bottom { border-top:1px solid #222; padding-top:1rem; display:flex; justify-content:space-between; align-items:center; }
+  .footer-bottom p { font-size:.75rem; color:#555; }
+
+  /* ─── MODAL ───────────────────────────── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.85); z-index:9999;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--paper); border:var(--border);
+    box-shadow:8px 8px 0 var(--ink);
+    width:90%; max-width:500px; padding:2rem;
+    position:relative;
+  }
+  .modal-close {
+    position:absolute; top:1rem; right:1rem;
+    background:var(--red); color:#fff; border:none;
+    width:28px; height:28px; cursor:pointer;
+    font-size:1rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .modal h2 { font-family:'Bangers',cursive; font-size:2rem; letter-spacing:2px; margin-bottom:1.5rem; }
+  .form-group { margin-bottom:1rem; }
+  .form-group label { display:block; font-size:.75rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:.3rem; }
+  .form-group input {
+    width:100%; padding:.6rem .75rem;
+    border:2px solid var(--ink); font-family:'Oswald',sans-serif; font-size:.9rem;
+    background:#fff; outline:none;
+  }
+  .form-group input:focus { border-color:var(--red); }
+  .modal-footer { margin-top:1.5rem; display:flex; gap:1rem; justify-content:flex-end; }
+
+  /* ─── SEARCH PAGE ────────────────────── */
+  #page-search { background:var(--paper); padding-bottom:3rem; }
+  .search-hero { background:var(--ink); padding:3rem 2.5rem; border-bottom:4px solid var(--yellow); }
+  .search-hero h1 { font-family:'Bangers',cursive; font-size:3rem; letter-spacing:4px; color:#fff; margin-bottom:1rem; }
+  .search-bar {
+    display:flex; max-width:600px;
+    border:3px solid var(--yellow); overflow:hidden;
+  }
+  .search-bar input {
+    flex:1; padding:.75rem 1rem;
+    background:#222; color:#fff; border:none;
+    font-family:'Oswald',sans-serif; font-size:1rem; outline:none;
+  }
+  .search-bar button {
+    background:var(--yellow); border:none; padding:.75rem 1.5rem;
+    font-family:'Oswald',sans-serif; font-size:.9rem; font-weight:700;
+    letter-spacing:1px; cursor:pointer; color:var(--ink);
+  }
+  .search-results { padding:2rem 2.5rem; }
+  .search-results h2 { font-family:'Bangers',cursive; font-size:1.8rem; letter-spacing:2px; margin-bottom:1.5rem; }
+
+  /* ─── SCROLLBAR ───────────────────────── */
+  ::-webkit-scrollbar { width:8px; }
+  ::-webkit-scrollbar-track { background:#111; }
+  ::-webkit-scrollbar-thumb { background:var(--red); }
+
+  /* ─── TICKER ─────────────────────────── */
+  .ticker-bar {
+    background:var(--red); color:#fff;
+    display:flex; overflow:hidden; height:30px; align-items:center;
+  }
+  .ticker-label {
+    background:var(--yellow); color:var(--ink);
+    font-size:.7rem; font-weight:700; letter-spacing:2px;
+    padding:0 1rem; height:100%; display:flex; align-items:center; flex-shrink:0;
+  }
+  .ticker-content {
+    white-space:nowrap; animation:ticker 20s linear infinite;
+    font-size:.75rem; font-weight:600; letter-spacing:1px;
+    padding-left:100%;
+  }
+  @keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+
+  /* ─── RESPONSIVE ──────────────────────── */
+  @media(max-width:768px) {
+    .hero { grid-template-columns:1fr; }
+    .hero-visual { display:none; }
+    .hero-title { font-size:3rem; }
+    .footer-grid { grid-template-columns:1fr 1fr; }
+    .detail-hero { grid-template-columns:1fr; }
+    .featured-strip { grid-template-columns:1fr; }
+    .profile-content { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">MANGA<span>VERSE</span></div>
+  <div class="nav-links">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('genres')">Genres</a>
+    <a onclick="showPage('search')">Browse</a>
+    <a onclick="showPage('profile')">My List</a>
+    <a onclick="openModal('login')" style="color:var(--yellow)">Login</a>
+  </div>
+  <div class="nav-search">
+    <input type="text" id="nav-search-input" placeholder="Search manga...">
+    <button onclick="doSearch()">⌕</button>
+  </div>
+</nav>
+
+<!-- ══════════════════ HOME PAGE ══════════════════ -->
+<div id="page-home" class="page active">
+
+  <!-- Ticker -->
+  <div class="ticker-bar">
+    <div class="ticker-label">LATEST</div>
+    <div class="ticker-content">
+      ★ One Piece Ch. 1110 — The Final Saga Continues &nbsp;|&nbsp;
+      ★ Jujutsu Kaisen Ch. 265 — Yuji's Awakening &nbsp;|&nbsp;
+      ★ Chainsaw Man Part 2 Ch. 165 — Asa Returns &nbsp;|&nbsp;
+      ★ Berserk Ch. 378 — The Restoration of Griffith &nbsp;|&nbsp;
+      ★ Vinland Saga Ch. 215 — Peace at Last &nbsp;|&nbsp;
+      ★ Demon Slayer: New Side Stories Announced
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-text">
+      <p class="hero-tag">🔥 #1 Manga Reading Platform</p>
+      <h1 class="hero-title">READ <span>MANGA</span> ONLINE FREE</h1>
+      <p class="hero-desc">Thousands of manga series at your fingertips. Read the latest chapters for free, no signup required.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="showPage('search')">Browse Manga</button>
+        <button class="btn-secondary" onclick="showPage('genres')">View Genres</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-manga-panels">
+        <div class="hero-panel" style="background:linear-gradient(135deg,#1a0000,#000);">
+          <span class="hero-panel-emoji" style="font-size:5rem;">⚔️</span>
+        </div>
+        <div class="hero-panel" style="background:linear-gradient(135deg,#000033,#000);">
+          <span class="sfx" style="color:#0055ff;">BOOM!</span>
+        </div>
+        <div class="hero-panel" style="background:linear-gradient(135deg,#001a00,#000);">
+          <span class="hero-panel-emoji" style="font-size:3rem;">🔥</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Featured -->
+  <div class="section-head">
+    <h2>FEATURED SERIES</h2>
+    <div class="line"></div>
+    <div class="badge">EDITOR'S PICK</div>
+  </div>
+  <div class="featured-strip">
+    <div class="featured-cover">⚔️</div>
+    <div>
+      <p class="featured-tag">🔥 TRENDING NOW</p>
+      <h2 class="featured-title">BLADE OF<br>ETERNITY</h2>
+      <div class="featured-genres">
+        <span class="tag">ACTION</span>
+        <span class="tag">FANTASY</span>
+        <span class="tag">SHOUNEN</span>
+        <span class="tag">ADVENTURE</span>
+      </div>
+      <p class="featured-desc">A young swordsman discovers an ancient cursed blade that grants him unimaginable power — but at the cost of his humanity. As dark forces close in, he must master the blade before it masters him.</p>
+      <div class="featured-stats">
+        <div class="stat-item"><div class="stat-num">312</div><div class="stat-label">CHAPTERS</div></div>
+        <div class="stat-item"><div class="stat-num">9.4</div><div class="stat-label">RATING</div></div>
+        <div class="stat-item"><div class="stat-num">2.1M</div><div class="stat-label">READERS</div></div>
+        <div class="stat-item"><div class="stat-num">2019</div><div class="stat-label">SINCE</div></div>
+      </div>
+      <div style="display:flex;gap:1rem">
+        <button class="btn-primary" onclick="showReader()">Read Ch. 1</button>
+        <button class="btn-secondary" onclick="showDetail()">View Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popular -->
+  <div class="section-head">
+    <h2>POPULAR MANGA</h2>
+    <div class="line"></div>
+    <div class="badge">ALL TIME</div>
+  </div>
+  <div class="genre-bar">
+    <span class="genre-pill active" onclick="filterGenre(this)">All</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Action</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Romance</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Fantasy</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Horror</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Comedy</span>
+    <span class="genre-pill" onclick="filterGenre(this)">Sci-Fi</span>
+  </div>
+  <div class="manga-grid" id="manga-grid">
+  </div>
+
+  <!-- New Releases -->
+  <div class="section-head">
+    <h2>NEW RELEASES</h2>
+    <div class="line"></div>
+    <div class="badge">THIS WEEK</div>
+  </div>
+  <div class="manga-grid" id="new-releases-grid">
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name">MANGAVERSE</div>
+        <p class="footer-brand-desc">The ultimate destination for manga readers worldwide. Free to read, always updated.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a onclick="showPage('home')">Home</a>
+        <a onclick="showPage('genres')">Genres</a>
+        <a onclick="showPage('search')">Browse</a>
+        <a onclick="showPage('profile')">My List</a>
+      </div>
+      <div class="footer-col">
+        <h4>Genres</h4>
+        <a>Action</a><a>Romance</a><a>Fantasy</a><a>Horror</a><a>Sci-Fi</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a>About Us</a><a>Contact</a><a>Privacy Policy</a><a>Terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 MangaVerse. For demo purposes only. All manga titles are fictional.</p>
+      <p style="color:#444">Made with ❤️ for manga fans</p>
+    </div>
+  </footer>
+</div>
+
+<!-- ══════════════════ READER PAGE ══════════════════ -->
+<div id="page-reader" class="page">
+  <div class="reader-nav">
+    <button class="reader-btn" onclick="showPage('home')" style="margin-right:.5rem">← Back</button>
+    <div class="reader-nav-title">BLADE OF ETERNITY &nbsp;|&nbsp; <span style="color:var(--red)">Chapter 1: The Awakening</span></div>
+    <div class="reader-controls">
+      <button class="reader-btn" onclick="prevChapter()">◀ Prev</button>
+      <select class="reader-chapter-select" id="chapter-select" onchange="changeChapter(this.value)">
+        <option value="1">Chapter 1: The Awakening</option>
+        <option value="2">Chapter 2: The First Battle</option>
+        <option value="3">Chapter 3: Hidden Power</option>
+        <option value="4">Chapter 4: The Dark Guild</option>
+        <option value="5">Chapter 5: Revelation</option>
+      </select>
+      <button class="reader-btn" onclick="nextChapter()">Next ▶</button>
+      <button class="reader-btn" onclick="showDetail()">Series Info</button>
+    </div>
+  </div>
+
+  <div class="reader-pages">
+    <div class="manga-page-panel">
+      <!-- Page 1 -->
+      <div class="manga-panel-row">
+        <div class="manga-panel-cell wide panel-bg-dark" style="min-height:250px">
+          <div class="action-lines"></div>
+          <div style="position:relative;z-index:1">
+            <div class="speech-bubble">I have been waiting... for this moment.</div>
+          </div>
+          <div style="text-align:right;position:relative;z-index:1">
+            <div class="character-silhouette">🗡️</div>
+          </div>
+        </div>
+        <div class="manga-panel-cell panel-bg-red" style="display:flex;flex-direction:column;justify-content:center;align-items:center">
+          <div class="sfx">クッ!</div>
+          <div class="sfx blue" style="font-size:1.5rem;margin-top:.5rem">SLASH</div>
+        </div>
+      </div>
+      <div class="manga-panel-row">
+        <div class="manga-panel-cell" style="min-height:200px;background:#0a0a14;justify-content:flex-start">
+          <div class="thought-bubble">The blade... it's calling to me. I can feel its power coursing through my veins.</div>
+        </div>
+        <div class="manga-panel-cell panel-bg-blue tall" style="align-items:center;justify-content:center">
+          <div style="font-size:6rem;filter:drop-shadow(0 0 30px rgba(0,100,255,.8))">⚔️</div>
+          <div class="sfx yellow" style="font-size:2.5rem;margin-top:1rem">AWAKEN!</div>
+        </div>
+        <div class="manga-panel-cell" style="background:#0f0f0f">
+          <div style="font-size:.75rem;color:#888;font-family:'Noto Sans JP',sans-serif;line-height:2">
+            Year 3025. The ancient war between<br>humans and demons has resumed.<br><br>
+            Only one chosen warrior can wield<br>the <span style="color:var(--red);font-weight:700">Blade of Eternity</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reader-page-number">— PAGE 1 —</div>
+
+    <div class="manga-page-panel">
+      <div class="manga-panel-row">
+        <div class="manga-panel-cell panel-bg-dark" style="min-height:300px;justify-content:center;align-items:center">
+          <div style="text-align:center">
+            <div style="font-size:8rem;filter:drop-shadow(0 0 40px rgba(255,0,0,.9))">🔥</div>
+            <div class="sfx" style="font-size:4rem;display:block;text-align:center">INFERNO!</div>
+          </div>
+        </div>
+        <div class="manga-panel-cell" style="flex-direction:column;gap:1rem;background:#050505">
+          <div class="speech-bubble">You dare challenge the Seven Demon Lords?!</div>
+          <div style="margin-top:1rem;font-size:4rem;text-align:center">👹</div>
+        </div>
+      </div>
+      <div class="manga-panel-row">
+        <div class="manga-panel-cell panel-bg-blue">
+          <div class="speech-bubble" style="background:#000;color:#fff;border-color:#0055ff">Watch me.</div>
+        </div>
+        <div class="manga-panel-cell panel-bg-red" style="align-items:center;justify-content:center;min-height:160px">
+          <div class="action-lines"></div>
+          <div class="sfx yellow" style="position:relative;z-index:1;font-size:3.5rem">BOOM!!</div>
+        </div>
+        <div class="manga-panel-cell" style="background:#111;min-height:160px;align-items:flex-end">
+          <div class="thought-bubble" style="background:#1a1a2e;color:#8888ff;border-color:#4444ff">Unlimited... power...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reader-page-number">— PAGE 2 —</div>
+
+    <div class="manga-page-panel">
+      <div class="manga-panel-row">
+        <div class="manga-panel-cell wide panel-bg-dark" style="min-height:350px;justify-content:center;align-items:center">
+          <div class="action-lines"></div>
+          <div style="position:relative;z-index:1;text-align:center">
+            <div style="font-size:10rem;filter:drop-shadow(0 0 60px rgba(255,200,0,1))">✨</div>
+            <div class="sfx yellow" style="font-size:5rem;letter-spacing:6px;display:block;text-shadow:4px 4px 0 #f00, 8px 8px 0 #00f">TRANSCEND</div>
+          </div>
+        </div>
+        <div class="manga-panel-cell" style="background:#050505;flex-direction:column;gap:.75rem;justify-content:flex-end">
+          <div class="speech-bubble">I... I can't believe my eyes!</div>
+          <div class="speech-bubble" style="background:#f0f0f0">He's... transforming?!</div>
+        </div>
+      </div>
+      <div style="background:#0a0a0a;padding:1.5rem;text-align:center;border-top:3px solid var(--red)">
+        <div style="color:#666;font-size:.75rem;letter-spacing:3px;font-weight:700">TO BE CONTINUED...</div>
+        <div style="color:var(--red);font-family:'Bangers',cursive;font-size:1.5rem;letter-spacing:3px;margin-top:.25rem">CHAPTER 2: THE FIRST BATTLE</div>
+      </div>
+    </div>
+
+    <div class="reader-page-number">— PAGE 3 / END OF CHAPTER 1 —</div>
+  </div>
+
+  <div class="reader-footer">
+    <button class="reader-btn" onclick="prevChapter()">◀ Previous Chapter</button>
+    <button class="btn-primary" onclick="nextChapter()">Next Chapter ▶</button>
+  </div>
+</div>
+
+<!-- ══════════════════ DETAIL PAGE ══════════════════ -->
+<div id="page-detail" class="page">
+  <div class="detail-hero">
+    <div>
+      <div class="detail-cover">⚔️</div>
+    </div>
+    <div>
+      <div class="detail-genres">
+        <span class="detail-genre">ACTION</span>
+        <span class="detail-genre">FANTASY</span>
+        <span class="detail-genre">SHOUNEN</span>
+        <span class="detail-genre">ONGOING</span>
+      </div>
+      <h1 class="detail-title">BLADE OF ETERNITY</h1>
+      <p class="detail-alt">永遠の刃 / Eien no Yaiba</p>
+      <div class="detail-stats">
+        <div class="detail-stat"><div class="detail-stat-n">312</div><div class="detail-stat-l">CHAPTERS</div></div>
+        <div class="detail-stat"><div class="detail-stat-n">9.4</div><div class="detail-stat-l">RATING</div></div>
+        <div class="detail-stat"><div class="detail-stat-n">2.1M</div><div class="detail-stat-l">READERS</div></div>
+        <div class="detail-stat"><div class="detail-stat-n">2019</div><div class="detail-stat-l">SINCE</div></div>
+      </div>
+      <p class="detail-desc">A young swordsman named Kaito discovers an ancient cursed blade sealed within a mountain tomb. The blade, known as the "Blade of Eternity," grants its wielder unimaginable power — but slowly consumes their soul. As seven Demon Lords rise once more, Kaito must learn to control the blade before the darkness within it claims him entirely. An epic tale of power, sacrifice, and the bonds that define us.</p>
+      <div style="display:flex;gap:1rem;margin-top:1.5rem">
+        <button class="btn-primary" onclick="showReader()">Start Reading</button>
+        <button class="btn-secondary" style="border-color:#444;color:#fff">+ Add to List</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapters-section">
+    <h3>CHAPTERS</h3>
+    <div class="chapter-list" id="chapter-list">
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div><div class="footer-brand-name">MANGAVERSE</div><p class="footer-brand-desc">Read manga free online, updated daily.</p></div>
+      <div class="footer-col"><h4>Navigate</h4><a onclick="showPage('home')">Home</a><a onclick="showPage('genres')">Genres</a></div>
+      <div class="footer-col"><h4>Genres</h4><a>Action</a><a>Romance</a><a>Fantasy</a></div>
+      <div class="footer-col"><h4>Support</h4><a>About</a><a>Contact</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 MangaVerse</p></div>
+  </footer>
+</div>
+
+<!-- ══════════════════ GENRES PAGE ══════════════════ -->
+<div id="page-genres" class="page">
+  <div class="genres-hero">
+    <h1>ALL GENRES</h1>
+    <p>Explore thousands of manga across every genre</p>
+  </div>
+  <div class="genres-grid">
+  </div>
+  <footer>
+    <div class="footer-grid">
+      <div><div class="footer-brand-name">MANGAVERSE</div><p class="footer-brand-desc">Read manga free online.</p></div>
+      <div class="footer-col"><h4>Navigate</h4><a onclick="showPage('home')">Home</a><a onclick="showPage('genres')">Genres</a></div>
+      <div class="footer-col"><h4>Genres</h4><a>Action</a><a>Romance</a><a>Fantasy</a></div>
+      <div class="footer-col"><h4>Support</h4><a>About</a><a>Contact</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 MangaVerse</p></div>
+  </footer>
+</div>
+
+<!-- ══════════════════ SEARCH PAGE ══════════════════ -->
+<div id="page-search" class="page">
+  <div class="search-hero">
+    <h1>BROWSE MANGA</h1>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search by title, genre, author..." value="">
+      <button onclick="doSearchMain()">SEARCH</button>
+    </div>
+  </div>
+  <div class="search-results">
+    <h2 id="search-results-title">ALL MANGA</h2>
+    <div class="manga-grid" id="search-results-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PROFILE PAGE ══════════════════ -->
+<div id="page-profile" class="page">
+  <div class="profile-hero">
+    <div class="profile-avatar">🥷</div>
+    <div>
+      <div class="profile-name">MANGAFAN_2077</div>
+      <div class="profile-since" style="color:#666">Member since January 2023</div>
+      <div class="profile-badges">
+        <span class="badge-item gold">⭐ GOLD READER</span>
+        <span class="badge-item">📚 300+ SERIES</span>
+        <span class="badge-item">🔥 30 DAY STREAK</span>
+      </div>
+    </div>
+    <div style="margin-left:auto;text-align:center">
+      <div style="font-family:'Bangers',cursive;font-size:3rem;color:var(--yellow);letter-spacing:3px">1,247</div>
+      <div style="font-size:.7rem;color:#666;letter-spacing:2px">CHAPTERS READ</div>
+    </div>
+  </div>
+
+  <div class="profile-content">
+    <div class="profile-section">
+      <h3>READING PROGRESS</h3>
+      <div class="reading-progress-item">
+        <div class="rp-header"><span>Blade of Eternity</span><span style="color:var(--red)">Ch. 245/312</span></div>
+        <div class="rp-bar"><div class="rp-fill" style="width:78%"></div></div>
+      </div>
+      <div class="reading-progress-item">
+        <div class="rp-header"><span>Shadow Realm Chronicles</span><span style="color:var(--red)">Ch. 89/150</span></div>
+        <div class="rp-bar"><div class="rp-fill" style="width:59%"></div></div>
+      </div>
+      <div class="reading-progress-item">
+        <div class="rp-header"><span>Neon Ronin</span><span style="color:var(--red)">Ch. 12/12</span></div>
+        <div class="rp-bar"><div class="rp-fill" style="width:100%;background:var(--blue)"></div></div>
+      </div>
+      <div class="reading-progress-item">
+        <div class="rp-header"><span>Ghost Protocol</span><span style="color:var(--red)">Ch. 3/200</span></div>
+        <div class="rp-bar"><div class="rp-fill" style="width:2%"></div></div>
+      </div>
+      <div class="reading-progress-item">
+        <div class="rp-header"><span>The Hollow King</span><span style="color:var(--red)">Ch. 67/80</span></div>
+        <div class="rp-bar"><div class="rp-fill" style="width:84%"></div></div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h3>RECENT ACTIVITY</h3>
+      <div class="activity-feed">
+        <div class="activity-item">
+          <div class="activity-icon">📖</div>
+          <div>
+            <div class="activity-text">Read <strong>Blade of Eternity</strong> Chapter 245</div>
+            <div class="activity-time">2 hours ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">⭐</div>
+          <div>
+            <div class="activity-text">Rated <strong>Shadow Realm Chronicles</strong> 9/10</div>
+            <div class="activity-time">Yesterday</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">✅</div>
+          <div>
+            <div class="activity-text">Completed <strong>Neon Ronin</strong> — All 12 chapters</div>
+            <div class="activity-time">3 days ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">📌</div>
+          <div>
+            <div class="activity-text">Added <strong>Ghost Protocol</strong> to reading list</div>
+            <div class="activity-time">1 week ago</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon">💬</div>
+          <div>
+            <div class="activity-text">Commented on <strong>The Hollow King</strong> Ch. 67: "This twist was incredible!!"</div>
+            <div class="activity-time">1 week ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Favorites -->
+  <div style="padding:0 2.5rem 2rem">
+    <div class="section-head" style="padding:1rem 0"><h2>MY FAVORITES</h2><div class="line"></div></div>
+    <div class="manga-grid" id="favorites-grid"></div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div><div class="footer-brand-name">MANGAVERSE</div><p class="footer-brand-desc">Read manga free online.</p></div>
+      <div class="footer-col"><h4>Navigate</h4><a onclick="showPage('home')">Home</a><a onclick="showPage('genres')">Genres</a></div>
+      <div class="footer-col"><h4>Account</h4><a>Settings</a><a>Notifications</a></div>
+      <div class="footer-col"><h4>Support</h4><a>About</a><a>Contact</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2025 MangaVerse</p></div>
+  </footer>
+</div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('login')">✕</button>
+    <h2>SIGN IN</h2>
+    <div class="form-group">
+      <label>Username / Email</label>
+      <input type="text" placeholder="Enter your username or email">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" placeholder="Enter your password">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('login');openModal('register')">Register</button>
+      <button class="btn-primary" onclick="doLogin()">LOGIN</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('register')">✕</button>
+    <h2>JOIN FREE</h2>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" placeholder="Choose a username">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" placeholder="Enter your email">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" placeholder="Create a password">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('register');openModal('login')">Sign In</button>
+      <button class="btn-primary" onclick="doRegister()">CREATE ACCOUNT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────
+const mangaData = [
+  { id:1,  title:"Blade of Eternity",       emoji:"⚔️",  genre:"Action",   rating:"9.4", chapters:"312", bg:"linear-gradient(135deg,#1a0000,#0a0a0a)", badge:"HOT",  new:false },
+  { id:2,  title:"Shadow Realm Chronicles", emoji:"🌑",  genre:"Fantasy",  rating:"8.9", chapters:"150", bg:"linear-gradient(135deg,#0a0028,#0a0a0a)", badge:"NEW",  new:true  },
+  { id:3,  title:"Neon Ronin",              emoji:"🥷",  genre:"Action",   rating:"9.1", chapters:"12",  bg:"linear-gradient(135deg,#001a33,#0a0a0a)", badge:"",     new:false },
+  { id:4,  title:"Ghost Protocol",          emoji:"👻",  genre:"Horror",   rating:"8.7", chapters:"200", bg:"linear-gradient(135deg,#001400,#0a0a0a)", badge:"NEW",  new:true  },
+  { id:5,  title:"The Hollow King",         emoji:"👑",  genre:"Fantasy",  rating:"9.2", chapters:"80",  bg:"linear-gradient(135deg,#1a1400,#0a0a0a)", badge:"HOT",  new:false },
+  { id:6,  title:"Sakura Protocol",         emoji:"🌸",  genre:"Romance",  rating:"8.5", chapters:"95",  bg:"linear-gradient(135deg,#1a0014,#0a0a0a)", badge:"",     new:false },
+  { id:7,  title:"Iron Circuit",            emoji:"🤖",  genre:"Sci-Fi",   rating:"8.8", chapters:"130", bg:"linear-gradient(135deg,#001a1a,#0a0a0a)", badge:"NEW",  new:true  },
+  { id:8,  title:"Rage of Olympus",         emoji:"⚡",  genre:"Action",   rating:"9.0", chapters:"205", bg:"linear-gradient(135deg,#1a1000,#0a0a0a)", badge:"HOT",  new:false },
+  { id:9,  title:"Crimson Tide",            emoji:"🩸",  genre:"Horror",   rating:"8.6", chapters:"60",  bg:"linear-gradient(135deg,#1a0000,#0a0a0a)", badge:"",     new:false },
+  { id:10, title:"Starfall Academy",        emoji:"🌟",  genre:"Comedy",   rating:"8.3", chapters:"175", bg:"linear-gradient(135deg,#00001a,#0a0a0a)", badge:"NEW",  new:true  },
+  { id:11, title:"The Devil's Contract",    emoji:"😈",  genre:"Action",   rating:"9.3", chapters:"288", bg:"linear-gradient(135deg,#1a0000,#000)",    badge:"TOP",  new:false },
+  { id:12, title:"Moonlit Swordplay",       emoji:"🌙",  genre:"Romance",  rating:"8.4", chapters:"44",  bg:"linear-gradient(135deg,#0a0028,#000)",    badge:"",     new:true  },
+];
+
+const genreData = [
+  { name:"Action",   icon:"⚔️",  count:"1,243" },
+  { name:"Romance",  icon:"💕",  count:"987"   },
+  { name:"Fantasy",  icon:"🧙",  count:"1,102" },
+  { name:"Horror",   icon:"👻",  count:"456"   },
+  { name:"Sci-Fi",   icon:"🚀",  count:"678"   },
+  { name:"Comedy",   icon:"😂",  count:"892"   },
+  { name:"Thriller", icon:"🔪",  count:"341"   },
+  { name:"Sports",   icon:"⚽",  count:"523"   },
+  { name:"Mystery",  icon:"🔍",  count:"412"   },
+  { name:"Isekai",   icon:"🌀",  count:"765"   },
+  { name:"Mecha",    icon:"🤖",  count:"234"   },
+  { name:"Slice of Life",icon:"☕",count:"645" },
+];
+
+const chapterList = [
+  { num:1,  title:"The Awakening",       date:"Mar 15, 2025", isNew:false },
+  { num:2,  title:"The First Battle",    date:"Mar 08, 2025", isNew:false },
+  { num:3,  title:"Hidden Power",        date:"Mar 01, 2025", isNew:false },
+  { num:4,  title:"The Dark Guild",      date:"Feb 22, 2025", isNew:false },
+  { num:5,  title:"Revelation",          date:"Feb 15, 2025", isNew:false },
+  { num:6,  title:"The Seven Seals",     date:"Feb 08, 2025", isNew:false },
+  { num:7,  title:"Into the Abyss",      date:"Feb 01, 2025", isNew:false },
+  { num:8,  title:"The Demon's Gate",    date:"Jan 25, 2025", isNew:false },
+  { num:312,title:"The Final Countdown", date:"Mar 18, 2025", isNew:true  },
+  { num:311,title:"The Convergence",     date:"Mar 11, 2025", isNew:true  },
+];
+
+// ─── RENDER ────────────────────────────────────────
+function createMangaCard(m) {
+  return `<div class="manga-card" onclick="showDetail(${m.id})">
+    <div class="manga-card-cover" style="background:${m.bg}">
+      <span style="font-size:3.5rem">${m.emoji}</span>
+      ${m.badge ? `<div class="manga-card-badge">${m.badge}</div>` : ''}
+      <div class="manga-card-chapter">Ch.${m.chapters}</div>
+    </div>
+    <div class="manga-card-info">
+      <div class="manga-card-title">${m.title}</div>
+      <div class="manga-card-meta">
+        <span>${m.genre}</span>
+        <span class="manga-card-rating">★ ${m.rating}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGrid(id, data) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = data.map(createMangaCard).join('');
+}
+
+function renderChapters() {
+  const el = document.getElementById('chapter-list');
+  if (!el) return;
+  el.innerHTML = chapterList.map(c => `
+    <div class="chapter-item" onclick="showReader()">
+      <div>
+        <div class="chapter-num">Chapter ${c.num}</div>
+        <div class="chapter-title-t">${c.title}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        ${c.isNew ? '<span class="chapter-new">NEW</span>' : ''}
+        <span class="chapter-date">${c.date}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderGenres() {
+  const el = document.querySelector('.genres-grid');
+  if (!el) return;
+  el.innerHTML = genreData.map(g => `
+    <div class="genre-card" onclick="filterByGenre('${g.name}')">
+      <div class="genre-icon">${g.icon}</div>
+      <div>
+        <div class="genre-name">${g.name}</div>
+        <div class="genre-count">${g.count} series</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── NAVIGATION ────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo(0,0);
+  if (name === 'genres') renderGenres();
+  if (name === 'search') renderGrid('search-results-grid', mangaData);
+  if (name === 'profile') renderGrid('favorites-grid', mangaData.slice(0,6));
+}
+
+function showReader() {
+  showPage('reader');
+}
+
+function showDetail(id) {
+  showPage('detail');
+  renderChapters();
+}
+
+function filterByGenre(genre) {
+  showPage('search');
+  const filtered = mangaData.filter(m => m.genre === genre);
+  document.getElementById('search-results-title').textContent = genre.toUpperCase() + ' MANGA';
+  renderGrid('search-results-grid', filtered.length ? filtered : mangaData);
+}
+
+// ─── SEARCH ────────────────────────────────────────
+function doSearch() {
+  const q = document.getElementById('nav-search-input').value.trim().toLowerCase();
+  showPage('search');
+  const filtered = q ? mangaData.filter(m => m.title.toLowerCase().includes(q) || m.genre.toLowerCase().includes(q)) : mangaData;
+  document.getElementById('search-results-title').textContent = q ? `RESULTS FOR "${q.toUpperCase()}"` : 'ALL MANGA';
+  renderGrid('search-results-grid', filtered.length ? filtered : mangaData);
+}
+
+function doSearchMain() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  const filtered = q ? mangaData.filter(m => m.title.toLowerCase().includes(q) || m.genre.toLowerCase().includes(q)) : mangaData;
+  document.getElementById('search-results-title').textContent = q ? `RESULTS FOR "${q.toUpperCase()}"` : 'ALL MANGA';
+  renderGrid('search-results-grid', filtered.length ? filtered : mangaData);
+}
+
+document.getElementById('nav-search-input').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+
+// ─── GENRE FILTER ──────────────────────────────────
+function filterGenre(el) {
+  document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const genre = el.textContent;
+  const filtered = genre === 'All' ? mangaData : mangaData.filter(m => m.genre === genre);
+  renderGrid('manga-grid', filtered);
+}
+
+// ─── READER CONTROLS ───────────────────────────────
+let currentChapter = 1;
+function nextChapter() {
+  if (currentChapter < 5) { currentChapter++; document.getElementById('chapter-select').value = currentChapter; showNotification('Loading Chapter ' + currentChapter + '...'); }
+  else showNotification('You are on the latest chapter!');
+}
+function prevChapter() {
+  if (currentChapter > 1) { currentChapter--; document.getElementById('chapter-select').value = currentChapter; showNotification('Loading Chapter ' + currentChapter + '...'); }
+  else showNotification('This is the first chapter!');
+}
+function changeChapter(v) { currentChapter = parseInt(v); showNotification('Loading Chapter ' + v + '...'); }
+
+// ─── MODALS ────────────────────────────────────────
+function openModal(name) { document.getElementById('modal-' + name).classList.add('open'); }
+function closeModal(name) { document.getElementById('modal-' + name).classList.remove('open'); }
+function doLogin() { closeModal('login'); showNotification('Welcome back, MangaFan! 🎉'); }
+function doRegister() { closeModal('register'); showNotification('Account created! Welcome to MangaVerse! 🎉'); }
+
+// click outside modal to close
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('open'); });
+});
+
+// ─── NOTIFICATION ──────────────────────────────────
+function showNotification(msg) {
+  const n = document.createElement('div');
+  n.style.cssText = `position:fixed;bottom:2rem;right:2rem;background:#0a0a0a;color:#fff;
+    border:3px solid var(--red);padding:.75rem 1.5rem;font-family:Oswald,sans-serif;
+    font-size:.85rem;letter-spacing:1px;z-index:9999;box-shadow:4px 4px 0 var(--red);
+    animation:slideIn .3s ease`;
+  n.innerHTML = msg;
+  document.body.appendChild(n);
+  const style = document.createElement('style');
+  style.textContent = '@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}';
+  document.head.appendChild(style);
+  setTimeout(() => n.remove(), 3000);
+}
+
+// ─── INIT ──────────────────────────────────────────
+renderGrid('manga-grid', mangaData);
+renderGrid('new-releases-grid', mangaData.filter(m => m.new));
+</script>
+</body>
+</html>
